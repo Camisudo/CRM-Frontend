@@ -13,7 +13,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate("/");
-    } catch (err) {
+    } catch {
       // Error is handled by Zustand store
     }
   };

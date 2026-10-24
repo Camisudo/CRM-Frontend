@@ -1,0 +1,77 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "../services/api";
+import type { Task } from "../types";
+
+export function useTasks(params?: Record<string, any>) {
+  return useQuery({
+    queryKey: ["tasks", params],
+    queryFn: async () => {
+      const response = await apiClient.getTasks(params);
+      return response.data;
+    },
+  });
+}
+
+export function useTask(id: string) {
+  return useQuery({
+    queryKey: ["tasks", id],
+    queryFn: async () => {
+      const response = await apiClient.getTask(id);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useMyTasks(params?: Record<string, any>) {
+  return useQuery({
+    queryKey: ["my-tasks", params],
+    queryFn: async () => {
+      const response = await apiClient.getMyTasks(params);
+      return response.data;
+    },
+  });
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: Partial<Task>) => {
+      const response = await apiClient.createTask(data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
+    },
+  });
+}
+
+export function useUpdateTask(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: Partial<Task>) => {
+      const response = await apiClient.updateTask(id, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks", id] });
+    },
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => apiClient.deleteTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["my-tasks"] });
+    },
+  });
+}

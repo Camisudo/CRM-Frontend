@@ -13,7 +13,7 @@ interface TaskFormModalProps {
   task?: Task;
 }
 
-export default function TaskFormModal({ task }: TaskFormModalProps) {
+function TaskFormModalInner({ task }: TaskFormModalProps) {
   const { modal, closeModal } = useUIStore();
   const { mutate: createTask, isPending: isCreating } = useCreateTask();
   const { mutate: updateTask, isPending: isUpdating } = useUpdateTask(
@@ -185,4 +185,15 @@ export default function TaskFormModal({ task }: TaskFormModalProps) {
       </form>
     </Modal>
   );
+}
+
+/**
+ * Renders nothing while closed. The inner form mounts on each open, so its
+ * fields initialise from the current record. Keying by id also resets the
+ * form when switching between records.
+ */
+export default function TaskFormModal(props: { task?: Task }) {
+  const modal = useUIStore((s) => s.modal);
+  if (!(modal.isOpen && modal.type === "task-form")) return null;
+  return <TaskFormModalInner key={props.task?.id ?? "new"} {...props} />;
 }

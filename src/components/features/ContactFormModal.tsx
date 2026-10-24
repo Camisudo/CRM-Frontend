@@ -11,7 +11,7 @@ interface ContactFormModalProps {
   contact?: Contact;
 }
 
-export default function ContactFormModal({
+function ContactFormModalInner({
   contact: initialContact,
 }: ContactFormModalProps) {
   const { modal, closeModal } = useUIStore();
@@ -240,4 +240,15 @@ export default function ContactFormModal({
       </form>
     </Modal>
   );
+}
+
+/**
+ * Renders nothing while closed. The inner form mounts on each open, so its
+ * fields initialise from the current record. Keying by id also resets the
+ * form when switching between records.
+ */
+export default function ContactFormModal(props: { contact?: Contact }) {
+  const modal = useUIStore((s) => s.modal);
+  if (!(modal.isOpen && modal.type === "contact-form")) return null;
+  return <ContactFormModalInner key={props.contact?.id ?? "new"} {...props} />;
 }

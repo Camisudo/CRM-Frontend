@@ -27,6 +27,7 @@ export function useCreateContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Contact created", errorMessage: "Could not create contact" },
     mutationFn: async (data: Partial<Contact>) => {
       const response = await apiClient.createContact(data);
       return response.data;
@@ -41,6 +42,7 @@ export function useUpdateContact(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Contact saved", errorMessage: "Could not save contact" },
     mutationFn: async (data: Partial<Contact>) => {
       const response = await apiClient.updateContact(id, data);
       return response.data;

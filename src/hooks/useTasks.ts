@@ -38,6 +38,7 @@ export function useCreateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Task created", errorMessage: "Could not create task" },
     mutationFn: async (data: Partial<Task>) => {
       const response = await apiClient.createTask(data);
       return response.data;
@@ -53,6 +54,7 @@ export function useUpdateTask(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Task saved", errorMessage: "Could not save task" },
     mutationFn: async (data: Partial<Task>) => {
       const response = await apiClient.updateTask(id, data);
       return response.data;

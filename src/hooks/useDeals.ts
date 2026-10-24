@@ -27,6 +27,7 @@ export function useCreateDeal() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Deal created", errorMessage: "Could not create deal" },
     mutationFn: async (data: Partial<Deal>) => {
       const response = await apiClient.createDeal(data);
       return response.data;
@@ -41,6 +42,7 @@ export function useUpdateDeal(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Deal saved", errorMessage: "Could not save deal" },
     mutationFn: async (data: Partial<Deal>) => {
       const response = await apiClient.updateDeal(id, data);
       return response.data;

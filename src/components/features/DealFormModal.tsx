@@ -12,7 +12,7 @@ interface DealFormModalProps {
   deal?: Deal;
 }
 
-export default function DealFormModal({
+function DealFormModalInner({
   deal: initialDeal,
 }: DealFormModalProps) {
   const { modal, closeModal } = useUIStore();
@@ -194,4 +194,15 @@ export default function DealFormModal({
       </form>
     </Modal>
   );
+}
+
+/**
+ * Renders nothing while closed. The inner form mounts on each open, so its
+ * fields initialise from the current record. Keying by id also resets the
+ * form when switching between records.
+ */
+export default function DealFormModal(props: { deal?: Deal }) {
+  const modal = useUIStore((s) => s.modal);
+  if (!(modal.isOpen && modal.type === "deal-form")) return null;
+  return <DealFormModalInner key={props.deal?.id ?? "new"} {...props} />;
 }

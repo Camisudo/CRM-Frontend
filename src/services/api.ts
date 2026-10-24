@@ -22,6 +22,22 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      // The API spec uses comma-separated lists (?status=open,in_progress),
+      // not repeated keys or bracket notation. Drop empty values too.
+      paramsSerializer: {
+        serialize: (params: Record<string, unknown>) => {
+          const search = new URLSearchParams();
+          Object.entries(params).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === "") return;
+            if (Array.isArray(value)) {
+              if (value.length > 0) search.append(key, value.join(","));
+              return;
+            }
+            search.append(key, String(value));
+          });
+          return search.toString();
+        },
+      },
     });
 
     // Add token to requests

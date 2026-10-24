@@ -1,28 +1,39 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useContacts, useDeleteContact } from "../hooks/useContacts";
+import { useBulkSelection } from "../hooks/useBulkSelection";
 import { useUIStore } from "../store/uiStore";
+import { apiClient } from "../services/api";
 import { Plus, Search, Loader, Edit2, Trash2 } from "lucide-react";
 import ContactFormModal from "../components/features/ContactFormModal";
 import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import type { Contact } from "../types";
 
+type ContactTypeFilter = "" | "individual" | "company";
+
 export default function ContactList() {
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<ContactTypeFilter>("");
   const [page, setPage] = useState(1);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const { data, isLoading, error } = useContacts({
     search,
+    type: typeFilter,
     page,
     limit: 20,
   });
 
-  const { openModal } = useUIStore();
+  const { openModal, showNotification } = useUIStore();
   const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact();
+  const queryClient = useQueryClient();
 
-  const contacts = data?.data || [];
+  const contacts: Contact[] = data?.data || [];
   const pagination = data?.pagination;
+  const bulk = useBulkSelection(contacts);
 
   const handleOpenNewModal = () => {
     setSelectedContact(null);
@@ -50,6 +61,31 @@ export default function ContactList() {
     }
   };
 
+  // Sequential per-item deletes; the API has no bulk endpoint.
+  const handleBulkDelete = async () => {
+    const ids = bulk.selectedIds;
+    setBulkDeleting(true);
+    let failed = 0;
+    for (const id of ids) {
+      try {
+        await apiClient.deleteContact(id);
+      } catch {
+        failed += 1;
+      }
+    }
+    setBulkDeleting(false);
+    setShowBulkDelete(false);
+    bulk.clear();
+    queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    const ok = ids.length - failed;
+    showNotification({
+      type: failed ? "warning" : "success",
+      message: failed
+        ? `Deleted ${ok} of ${ids.length} contacts; ${failed} failed`
+        : `Deleted ${ok} contact${ok === 1 ? "" : "s"}`,
+    });
+  };
+
   if (error) {
     return (
       <div className="p-8">
@@ -73,9 +109,9 @@ export default function ContactList() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
+      {/* Filters */}
+      <div className="mb-6 flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-64">
           <Search className="absolute left-3 top-3 text-neutral-400" size={20} />
           <input
             type="text"
@@ -88,68 +124,92 @@ export default function ContactList() {
             className="input-base pl-10"
           />
         </div>
+        <select
+          aria-label="Filter by contact type"
+          value={typeFilter}
+          onChange={(e) => {
+            setTypeFilter(e.target.value as ContactTypeFilter);
+            setPage(1);
+          }}
+          className="input-base w-44"
+        >
+          <option value="">All types</option>
+          <option value="individual">Individuals</option>
+          <option value="company">Companies</option>
+        </select>
       </div>
 
-      {/* Loading state */}
+      {/* Bulk action bar */}
+      {bulk.selected.size > 0 && (
+        <div className="mb-4 flex items-center justify-between card p-3">
+          <p className="text-sm">{bulk.selected.size} selected</p>
+          <div className="flex gap-2">
+            <button onClick={bulk.clear} className="btn-secondary">
+              Clear
+            </button>
+            <button
+              onClick={() => setShowBulkDelete(true)}
+              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-red-700 font-medium"
+            >
+              Delete selected
+            </button>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader className="animate-spin text-primary-600" size={32} />
         </div>
       ) : (
         <>
-          {/* Contacts Table */}
           {contacts.length > 0 && (
             <div className="card overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="border-b bg-neutral-50">
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
-                      Name
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all contacts on this page"
+                        checked={bulk.allSelected}
+                        onChange={bulk.toggleAll}
+                      />
                     </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
-                      Company
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-neutral-700">
-                      Actions
-                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">Name</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">Email</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">Phone</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">Company</th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-neutral-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {contacts.map((contact: Contact) => (
-                    <tr
-                      key={contact.id}
-                      className="border-b hover:bg-neutral-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium">
-                            {contact.firstName} {contact.lastName}
-                          </p>
-                          <p className="text-xs text-neutral-500">
-                            {contact.type === "individual" ? "Individual" : "Company"}
-                          </p>
-                        </div>
+                  {contacts.map((contact) => (
+                    <tr key={contact.id} className="border-b hover:bg-neutral-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${contact.firstName}`}
+                          checked={bulk.selected.has(contact.id)}
+                          onChange={() => bulk.toggle(contact.id)}
+                        />
                       </td>
                       <td className="px-6 py-4">
-                        <a
-                          href={`mailto:${contact.email}`}
-                          className="text-primary-600 hover:underline"
-                        >
+                        <p className="font-medium">
+                          {contact.firstName} {contact.lastName}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                          {contact.type === "individual" ? "Individual" : "Company"}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <a href={`mailto:${contact.email}`} className="text-primary-600 hover:underline">
                           {contact.email}
                         </a>
                       </td>
                       <td className="px-6 py-4">
                         {contact.phone ? (
-                          <a
-                            href={`tel:${contact.phone}`}
-                            className="text-primary-600 hover:underline"
-                          >
+                          <a href={`tel:${contact.phone}`} className="text-primary-600 hover:underline">
                             {contact.phone}
                           </a>
                         ) : (
@@ -157,9 +217,7 @@ export default function ContactList() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        {contact.companyName || (
-                          <span className="text-neutral-400">—</span>
-                        )}
+                        {contact.companyName || <span className="text-neutral-400">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
@@ -186,8 +244,7 @@ export default function ContactList() {
             </div>
           )}
 
-          {/* Empty state */}
-          {!isLoading && contacts.length === 0 && (
+          {contacts.length === 0 && (
             <div className="card p-12 text-center">
               <p className="text-neutral-500 mb-4">No contacts found</p>
               <button onClick={handleOpenNewModal} className="btn-primary">
@@ -196,7 +253,6 @@ export default function ContactList() {
             </div>
           )}
 
-          {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="mt-6 flex items-center justify-between">
               <p className="text-sm text-neutral-600">
@@ -211,9 +267,7 @@ export default function ContactList() {
                   Previous
                 </button>
                 <button
-                  onClick={() =>
-                    setPage(Math.min(pagination.totalPages, page + 1))
-                  }
+                  onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
                   disabled={page === pagination.totalPages}
                   className="btn-secondary disabled:opacity-50"
                 >
@@ -225,10 +279,8 @@ export default function ContactList() {
         </>
       )}
 
-      {/* Contact Form Modal */}
       <ContactFormModal contact={selectedContact || undefined} />
 
-      {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={showDeleteConfirm}
         onClose={() => {
@@ -236,13 +288,18 @@ export default function ContactList() {
           setSelectedContact(null);
         }}
         onConfirm={handleConfirmDelete}
-        itemName={
-          selectedContact
-            ? `${selectedContact.firstName} ${selectedContact.lastName}`
-            : ""
-        }
+        itemName={selectedContact ? `${selectedContact.firstName} ${selectedContact.lastName}` : ""}
         itemType="contact"
         isLoading={isDeleting}
+      />
+
+      <DeleteConfirmModal
+        isOpen={showBulkDelete}
+        onClose={() => setShowBulkDelete(false)}
+        onConfirm={handleBulkDelete}
+        itemName={`${bulk.selected.size} selected contacts`}
+        itemType="contact"
+        isLoading={bulkDeleting}
       />
     </div>
   );

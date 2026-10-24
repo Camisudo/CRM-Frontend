@@ -4,6 +4,7 @@ import {
   Users,
   Briefcase,
   CheckSquare,
+  Activity,
   BarChart3,
   Menu,
 } from "lucide-react";
@@ -18,6 +19,7 @@ export default function Sidebar() {
     { label: "Contacts", path: "/contacts", icon: Users },
     { label: "Deals", path: "/deals", icon: Briefcase },
     { label: "Tasks", path: "/tasks", icon: CheckSquare },
+    { label: "Activity", path: "/activity", icon: Activity },
     { label: "Reports", path: "/reports", icon: BarChart3 },
   ];
 

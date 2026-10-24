@@ -56,6 +56,7 @@ export function useDeleteContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Contact deleted", errorMessage: "Could not delete contact" },
     mutationFn: (id: string) => apiClient.deleteContact(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts"] });

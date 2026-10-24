@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../services/api";
+import { TaskStatus } from "../types";
 import type { Task } from "../types";
 
 export function useTasks(params?: Record<string, any>) {
@@ -68,9 +69,11 @@ export function useToggleTaskComplete() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { errorMessage: "Could not update task" },
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const response = await apiClient.updateTask(id, {
-        status: completed ? "completed" : "open",
+        status: completed ? TaskStatus.Completed : TaskStatus.Open,
+        completedAt: completed ? new Date().toISOString() : undefined,
       } as Partial<Task>);
       return response.data;
     },
@@ -85,6 +88,7 @@ export function useDeleteTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Task deleted", errorMessage: "Could not delete task" },
     mutationFn: (id: string) => apiClient.deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });

@@ -56,6 +56,7 @@ export function useDeleteDeal() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    meta: { successMessage: "Deal deleted", errorMessage: "Could not delete deal" },
     mutationFn: (id: string) => apiClient.deleteDeal(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });

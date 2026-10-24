@@ -17,7 +17,14 @@ const stages = [
 ];
 
 export default function DealsPage() {
-  const { data, isLoading, error } = useDeals();
+  const [minValue, setMinValue] = useState("");
+  const [maxValue, setMaxValue] = useState("");
+
+  const { data, isLoading, error } = useDeals({
+    minValue: minValue || undefined,
+    maxValue: maxValue || undefined,
+    limit: 100,
+  });
   const { openModal } = useUIStore();
   const { mutate: deleteDeal, isPending: isDeleting } = useDeleteDeal();
 
@@ -83,6 +90,27 @@ export default function DealsPage() {
           <Plus size={20} />
           <span>New Deal</span>
         </button>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-3">
+        <input
+          type="number"
+          min="0"
+          aria-label="Minimum value"
+          placeholder="Min value"
+          value={minValue}
+          onChange={(e) => setMinValue(e.target.value)}
+          className="input-base w-40"
+        />
+        <input
+          type="number"
+          min="0"
+          aria-label="Maximum value"
+          placeholder="Max value"
+          value={maxValue}
+          onChange={(e) => setMaxValue(e.target.value)}
+          className="input-base w-40"
+        />
       </div>
 
       {isLoading ? (

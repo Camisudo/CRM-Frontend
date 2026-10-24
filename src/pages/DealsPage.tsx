@@ -1,42 +1,58 @@
-import { useDeals } from "../hooks/useDeals";
+import { useState } from "react";
+import { useDeals, useDeleteDeal } from "../hooks/useDeals";
 import { useUIStore } from "../store/uiStore";
 import { DealStage } from "../types";
-import { Plus, Loader } from "lucide-react";
+import { Plus, Loader, Edit2, Trash2 } from "lucide-react";
 import DealFormModal from "../components/features/DealFormModal";
+import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import type { Deal } from "../types";
 
 const stages = [
-  { value: DealStage.Prospect, label: "Prospect" },
-  { value: DealStage.Qualified, label: "Qualified" },
-  { value: DealStage.Proposal, label: "Proposal" },
-  { value: DealStage.Negotiation, label: "Negotiation" },
-  { value: DealStage.ClosedWon, label: "Won" },
-  { value: DealStage.ClosedLost, label: "Lost" },
+  { value: DealStage.Prospect, label: "Prospect", color: "bg-blue-100" },
+  { value: DealStage.Qualified, label: "Qualified", color: "bg-cyan-100" },
+  { value: DealStage.Proposal, label: "Proposal", color: "bg-yellow-100" },
+  { value: DealStage.Negotiation, label: "Negotiation", color: "bg-orange-100" },
+  { value: DealStage.ClosedWon, label: "Won", color: "bg-green-100" },
+  { value: DealStage.ClosedLost, label: "Lost", color: "bg-red-100" },
 ];
 
 export default function DealsPage() {
   const { data, isLoading, error } = useDeals();
   const { openModal } = useUIStore();
+  const { mutate: deleteDeal, isPending: isDeleting } = useDeleteDeal();
+
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const deals = data?.data || [];
 
-  const dealsByStage = stages.reduce(
-    (acc, stage) => {
-      acc[stage.value] = deals.filter((d: Deal) => d.stage === stage.value);
-      return acc;
-    },
-    {} as Record<string, Deal[]>
-  );
+  const dealsByStage = stages.map((stage) => ({
+    ...stage,
+    deals: deals.filter((d: Deal) => d.stage === stage.value),
+  }));
 
-  const totalPipelineValue = deals.reduce((sum: number, deal: Deal) => sum + deal.value, 0);
+  const totalPipelineValue = deals.reduce((sum: number, d: Deal) => sum + (d.value || 0), 0);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="animate-spin text-primary-600" size={32} />
-      </div>
-    );
-  }
+  const handleEditDeal = (deal: Deal) => {
+    setSelectedDeal(deal);
+    openModal("deal-form");
+  };
+
+  const handleDeleteClick = (deal: Deal) => {
+    setSelectedDeal(deal);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedDeal) {
+      deleteDeal(selectedDeal.id, {
+        onSuccess: () => {
+          setShowDeleteConfirm(false);
+          setSelectedDeal(null);
+        },
+      });
+    }
+  };
 
   if (error) {
     return (
@@ -58,7 +74,10 @@ export default function DealsPage() {
           </p>
         </div>
         <button
-          onClick={() => openModal("deal-form")}
+          onClick={() => {
+            setSelectedDeal(null);
+            openModal("deal-form");
+          }}
           className="btn-primary flex items-center space-x-2"
         >
           <Plus size={20} />
@@ -66,61 +85,75 @@ export default function DealsPage() {
         </button>
       </div>
 
-      {/* Kanban Board */}
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-6 min-w-max">
-          {stages.map((stage) => {
-            const stageDeal = dealsByStage[stage.value] || [];
-            return (
-              <div key={stage.value} className="w-80 flex-shrink-0">
-                {/* Column Header */}
-                <div className="mb-4">
-                  <h2 className="font-semibold text-lg mb-2">{stage.label}</h2>
-                  <p className="text-sm text-neutral-600">
-                    {stageDeal.length} deal{stageDeal.length !== 1 ? "s" : ""} •{" "}
-                    ${stageDeal.reduce((sum, d) => sum + d.value, 0).toLocaleString()}
-                  </p>
-                </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader className="animate-spin text-primary-600" size={32} />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+          {dealsByStage.map((stage) => (
+            <div key={stage.value}>
+              <h2 className="font-semibold text-sm mb-4">
+                {stage.label} ({stage.deals.length})
+              </h2>
+              <div className="space-y-3">
+                {stage.deals.map((deal: Deal) => (
+                  <div
+                    key={deal.id}
+                    className={`${stage.color} p-4 rounded-lg border cursor-pointer hover:shadow-md transition-shadow`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{deal.title}</p>
+                        <p className="text-xs text-neutral-600 mt-1">
+                          ${deal.value?.toLocaleString() || 0}
+                        </p>
+                        <p className="text-xs text-neutral-600">
+                          {deal.probability}% likely
+                        </p>
+                      </div>
 
-                {/* Cards */}
-                <div className="space-y-3">
-                  {stageDeal.map((deal: Deal) => (
-                    <div key={deal.id} className="card p-4 hover:shadow-md transition-shadow cursor-pointer">
-                      <h3 className="font-semibold mb-2 line-clamp-2">{deal.title}</h3>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-600">Amount:</span>
-                          <span className="font-semibold">
-                            ${deal.value.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-neutral-600">Probability:</span>
-                          <span className="font-semibold">{deal.probability}%</span>
-                        </div>
-                        <div className="pt-2 border-t border-neutral-200">
-                          <p className="text-xs text-neutral-500">
-                            {deal.contact?.firstName} {deal.contact?.lastName}
-                          </p>
-                        </div>
+                      {/* Row Actions */}
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => handleEditDeal(deal)}
+                          className="p-1.5 hover:bg-white/50 rounded transition-colors"
+                          title="Edit deal"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(deal)}
+                          className="p-1.5 hover:bg-red-200 rounded transition-colors text-error"
+                          title="Delete deal"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-                  ))}
-
-                  {stageDeal.length === 0 && (
-                    <div className="card p-4 text-center text-neutral-400 py-8">
-                      <p className="text-sm">No deals</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Deal Form Modal */}
-      <DealFormModal />
+      <DealFormModal deal={selectedDeal || undefined} />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setSelectedDeal(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        itemName={selectedDeal?.title || ""}
+        itemType="deal"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

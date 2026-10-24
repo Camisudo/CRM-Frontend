@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useTasks } from "../hooks/useTasks";
+import { useTasks, useDeleteTask, useToggleTaskComplete } from "../hooks/useTasks";
 import { useUIStore } from "../store/uiStore";
 import { TaskStatus } from "../types";
-import { Plus, Loader, CheckCircle2, Circle } from "lucide-react";
+import { Plus, Loader, CheckCircle2, Circle, Edit2, Trash2 } from "lucide-react";
 import TaskFormModal from "../components/features/TaskFormModal";
+import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import type { Task } from "../types";
 
 const taskTypeColors: Record<string, string> = {
@@ -16,6 +17,8 @@ const taskTypeColors: Record<string, string> = {
 
 export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data, isLoading, error } = useTasks({
     status: statusFilter ? [statusFilter] : undefined,
@@ -24,12 +27,30 @@ export default function TasksPage() {
   });
 
   const { openModal } = useUIStore();
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask();
+  const { mutate: toggleComplete } = useToggleTaskComplete();
 
   const tasks = data?.data || [];
 
-  const handleToggleComplete = (task: Task) => {
-    // TODO: Implement task update via mutation
-    console.log("Toggle complete for task:", task.id);
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    openModal("task-form");
+  };
+
+  const handleDeleteClick = (task: Task) => {
+    setSelectedTask(task);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedTask) {
+      deleteTask(selectedTask.id, {
+        onSuccess: () => {
+          setShowDeleteConfirm(false);
+          setSelectedTask(null);
+        },
+      });
+    }
   };
 
   const priorityColors: Record<string, string> = {
@@ -68,7 +89,10 @@ export default function TasksPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Tasks</h1>
         <button
-          onClick={() => openModal("task-form")}
+          onClick={() => {
+            setSelectedTask(null);
+            openModal("task-form");
+          }}
           className="btn-primary flex items-center space-x-2"
         >
           <Plus size={20} />
@@ -105,7 +129,12 @@ export default function TasksPage() {
             >
               {/* Checkbox */}
               <button
-                onClick={() => handleToggleComplete(task)}
+                onClick={() =>
+                  toggleComplete({
+                    id: task.id,
+                    completed: task.status !== TaskStatus.Completed,
+                  })
+                }
                 className="mt-1 text-neutral-400 hover:text-primary-600 transition-colors flex-shrink-0"
               >
                 {task.status === TaskStatus.Completed ? (
@@ -146,16 +175,36 @@ export default function TasksPage() {
                     </div>
                   </div>
 
-                  {/* Due Date */}
-                  <div className="text-right flex-shrink-0">
-                    {task.dueDate && (
-                      <p className="text-sm text-neutral-600">
-                        {new Date(task.dueDate).toLocaleDateString()}
+                  {/* Due Date & Actions */}
+                  <div className="flex-shrink-0">
+                    <div className="text-right mb-3">
+                      {task.dueDate && (
+                        <p className="text-sm text-neutral-600">
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </p>
+                      )}
+                      <p className="text-xs text-neutral-500">
+                        {task.assignedTo.firstName}
                       </p>
-                    )}
-                    <p className="text-xs text-neutral-500">
-                      {task.assignedTo.firstName}
-                    </p>
+                    </div>
+
+                    {/* Row Actions */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditTask(task)}
+                        className="p-2 text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
+                        title="Edit task"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(task)}
+                        className="p-2 text-error hover:bg-error/10 rounded transition-colors"
+                        title="Delete task"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -169,7 +218,20 @@ export default function TasksPage() {
       </div>
 
       {/* Task Form Modal */}
-      <TaskFormModal />
+      <TaskFormModal task={selectedTask || undefined} />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setSelectedTask(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        itemName={selectedTask?.title || ""}
+        itemType="task"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

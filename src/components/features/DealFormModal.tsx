@@ -12,28 +12,30 @@ interface DealFormModalProps {
   deal?: Deal;
 }
 
-export default function DealFormModal({ deal }: DealFormModalProps) {
+export default function DealFormModal({
+  deal: initialDeal,
+}: DealFormModalProps) {
   const { modal, closeModal } = useUIStore();
   const { mutate: createDeal, isPending: isCreating } = useCreateDeal();
   const { mutate: updateDeal, isPending: isUpdating } = useUpdateDeal(
-    deal?.id || ""
+    initialDeal?.id || ""
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
-    title: deal?.title || "",
-    description: deal?.description || "",
-    value: deal?.value?.toString() || "",
-    currency: deal?.currency || "USD",
-    stage: deal?.stage || DealStage.Prospect,
-    probability: deal?.probability?.toString() || "50",
-    expectedCloseDate: deal?.expectedCloseDate
-      ? deal.expectedCloseDate.split("T")[0]
+    title: initialDeal?.title || "",
+    description: initialDeal?.description || "",
+    value: initialDeal?.value?.toString() || "",
+    currency: initialDeal?.currency || "USD",
+    stage: initialDeal?.stage || DealStage.Prospect,
+    probability: initialDeal?.probability?.toString() || "50",
+    expectedCloseDate: initialDeal?.expectedCloseDate
+      ? initialDeal.expectedCloseDate.split("T")[0]
       : "",
   });
 
   const isOpen = modal.isOpen && modal.type === "deal-form";
-  const isEditing = !!deal;
+  const isEditing = !!initialDeal;
   const isLoading = isCreating || isUpdating;
 
   const validateForm = () => {

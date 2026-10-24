@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { useContacts } from "../hooks/useContacts";
+import { useContacts, useDeleteContact } from "../hooks/useContacts";
 import { useUIStore } from "../store/uiStore";
-import { Link } from "react-router-dom";
-import { Plus, Search, Loader } from "lucide-react";
+import { Plus, Search, Loader, Edit2, Trash2 } from "lucide-react";
 import ContactFormModal from "../components/features/ContactFormModal";
+import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import type { Contact } from "../types";
 
 export default function ContactList() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data, isLoading, error } = useContacts({
     search,
@@ -17,19 +19,55 @@ export default function ContactList() {
   });
 
   const { openModal } = useUIStore();
-
-  const handleOpenModal = () => {
-    openModal("contact-form");
-  };
+  const { mutate: deleteContact, isPending: isDeleting } = useDeleteContact();
 
   const contacts = data?.data || [];
   const pagination = data?.pagination;
+
+  const handleOpenNewModal = () => {
+    setSelectedContact(null);
+    openModal("contact-form");
+  };
+
+  const handleEditContact = (contact: Contact) => {
+    setSelectedContact(contact);
+    openModal("contact-form");
+  };
+
+  const handleDeleteClick = (contact: Contact) => {
+    setSelectedContact(contact);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedContact) {
+      deleteContact(selectedContact.id, {
+        onSuccess: () => {
+          setShowDeleteConfirm(false);
+          setSelectedContact(null);
+        },
+      });
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-error/10 border border-error text-error px-4 py-3 rounded">
+          Failed to load contacts. Please try again.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Contacts</h1>
-        <button onClick={handleOpenModal} className="btn-primary flex items-center space-x-2">
+        <button
+          onClick={handleOpenNewModal}
+          className="btn-primary flex items-center space-x-2"
+        >
           <Plus size={20} />
           <span>New Contact</span>
         </button>
@@ -52,75 +90,119 @@ export default function ContactList() {
         </div>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
+      {/* Loading state */}
+      {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader className="animate-spin text-primary-600" size={32} />
         </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="bg-error/10 border border-error text-error px-4 py-3 rounded mb-6">
-          Failed to load contacts. Please try again.
-        </div>
-      )}
-
-      {/* Table */}
-      {!isLoading && contacts.length > 0 && (
+      ) : (
         <>
-          <div className="card overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-neutral-50 border-b border-neutral-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Name</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Email</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Phone</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Owner</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contacts.map((contact: Contact) => (
-                  <tr key={contact.id} className="border-b border-neutral-200 hover:bg-neutral-50">
-                    <td className="px-6 py-3">
-                      <Link
-                        to={`/contacts/${contact.id}`}
-                        className="text-primary-600 hover:underline font-medium"
-                      >
-                        {contact.firstName} {contact.lastName || ""}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-3 text-sm">{contact.email}</td>
-                    <td className="px-6 py-3 text-sm">{contact.phone || "-"}</td>
-                    <td className="px-6 py-3 text-sm">
-                      <span className="px-2 py-1 bg-neutral-100 rounded text-xs font-medium">
-                        {contact.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-sm">{contact.owner.firstName}</td>
-                    <td className="px-6 py-3 text-sm">
-                      <Link
-                        to={`/contacts/${contact.id}`}
-                        className="text-primary-600 hover:underline"
-                      >
-                        View
-                      </Link>
-                    </td>
+          {/* Contacts Table */}
+          {contacts.length > 0 && (
+            <div className="card overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-neutral-50">
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-neutral-700">
+                      Company
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-neutral-700">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {contacts.map((contact: Contact) => (
+                    <tr
+                      key={contact.id}
+                      className="border-b hover:bg-neutral-50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-medium">
+                            {contact.firstName} {contact.lastName}
+                          </p>
+                          <p className="text-xs text-neutral-500">
+                            {contact.type === "individual" ? "Individual" : "Company"}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <a
+                          href={`mailto:${contact.email}`}
+                          className="text-primary-600 hover:underline"
+                        >
+                          {contact.email}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4">
+                        {contact.phone ? (
+                          <a
+                            href={`tel:${contact.phone}`}
+                            className="text-primary-600 hover:underline"
+                          >
+                            {contact.phone}
+                          </a>
+                        ) : (
+                          <span className="text-neutral-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {contact.companyName || (
+                          <span className="text-neutral-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEditContact(contact)}
+                            className="p-2 text-neutral-600 hover:bg-neutral-100 rounded transition-colors"
+                            title="Edit contact"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(contact)}
+                            className="p-2 text-error hover:bg-error/10 rounded transition-colors"
+                            title="Delete contact"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && contacts.length === 0 && (
+            <div className="card p-12 text-center">
+              <p className="text-neutral-500 mb-4">No contacts found</p>
+              <button onClick={handleOpenNewModal} className="btn-primary">
+                Create your first contact
+              </button>
+            </div>
+          )}
 
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="mt-6 flex items-center justify-between">
               <p className="text-sm text-neutral-600">
-                Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+                Page {pagination.page} of {pagination.totalPages}
               </p>
-              <div className="space-x-2">
+              <div className="flex gap-2">
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page === 1}
@@ -129,7 +211,9 @@ export default function ContactList() {
                   Previous
                 </button>
                 <button
-                  onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
+                  onClick={() =>
+                    setPage(Math.min(pagination.totalPages, page + 1))
+                  }
                   disabled={page === pagination.totalPages}
                   className="btn-secondary disabled:opacity-50"
                 >
@@ -141,18 +225,25 @@ export default function ContactList() {
         </>
       )}
 
-      {/* Empty state */}
-      {!isLoading && contacts.length === 0 && (
-        <div className="card p-12 text-center">
-          <p className="text-neutral-500 mb-4">No contacts found</p>
-          <button onClick={handleOpenModal} className="btn-primary">
-            Create your first contact
-          </button>
-        </div>
-      )}
-
       {/* Contact Form Modal */}
-      <ContactFormModal />
+      <ContactFormModal contact={selectedContact || undefined} />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setSelectedContact(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        itemName={
+          selectedContact
+            ? `${selectedContact.firstName} ${selectedContact.lastName}`
+            : ""
+        }
+        itemType="contact"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

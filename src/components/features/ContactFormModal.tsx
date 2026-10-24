@@ -11,31 +11,33 @@ interface ContactFormModalProps {
   contact?: Contact;
 }
 
-export default function ContactFormModal({ contact }: ContactFormModalProps) {
+export default function ContactFormModal({
+  contact: initialContact,
+}: ContactFormModalProps) {
   const { modal, closeModal } = useUIStore();
   const { mutate: createContact, isPending: isCreating } = useCreateContact();
   const { mutate: updateContact, isPending: isUpdating } = useUpdateContact(
-    contact?.id || ""
+    initialContact?.id || ""
   );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
-    type: contact?.type || "individual",
-    firstName: contact?.firstName || "",
-    lastName: contact?.lastName || "",
-    companyName: contact?.companyName || "",
-    email: contact?.email || "",
-    phone: contact?.phone || "",
-    website: contact?.website || "",
-    street: contact?.address?.street || "",
-    city: contact?.address?.city || "",
-    state: contact?.address?.state || "",
-    postalCode: contact?.address?.postalCode || "",
-    country: contact?.address?.country || "",
+    type: initialContact?.type || "individual",
+    firstName: initialContact?.firstName || "",
+    lastName: initialContact?.lastName || "",
+    companyName: initialContact?.companyName || "",
+    email: initialContact?.email || "",
+    phone: initialContact?.phone || "",
+    website: initialContact?.website || "",
+    street: initialContact?.address?.street || "",
+    city: initialContact?.address?.city || "",
+    state: initialContact?.address?.state || "",
+    postalCode: initialContact?.address?.postalCode || "",
+    country: initialContact?.address?.country || "",
   });
 
   const isOpen = modal.isOpen && modal.type === "contact-form";
-  const isEditing = !!contact;
+  const isEditing = !!initialContact;
   const isLoading = isCreating || isUpdating;
 
   const validateForm = () => {

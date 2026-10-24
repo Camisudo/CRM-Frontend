@@ -149,7 +149,7 @@ export default function ContactList() {
             </button>
             <button
               onClick={() => setShowBulkDelete(true)}
-              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-red-700 font-medium"
+              className="px-4 py-2 bg-error text-white rounded-lg hover:opacity-90 font-medium"
             >
               Delete selected
             </button>
@@ -159,7 +159,7 @@ export default function ContactList() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader className="animate-spin text-primary-600" size={32} />
+          <Loader className="animate-spin text-brand" size={32} />
         </div>
       ) : (
         <>
@@ -203,13 +203,13 @@ export default function ContactList() {
                         </p>
                       </td>
                       <td className="px-6 py-4">
-                        <a href={`mailto:${contact.email}`} className="text-primary-600 hover:underline">
+                        <a href={`mailto:${contact.email}`} className="text-brand hover:underline">
                           {contact.email}
                         </a>
                       </td>
                       <td className="px-6 py-4">
                         {contact.phone ? (
-                          <a href={`tel:${contact.phone}`} className="text-primary-600 hover:underline">
+                          <a href={`tel:${contact.phone}`} className="text-brand hover:underline">
                             {contact.phone}
                           </a>
                         ) : (

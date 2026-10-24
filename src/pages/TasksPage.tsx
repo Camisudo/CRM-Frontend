@@ -11,16 +11,16 @@ import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import type { Task } from "../types";
 
 const taskTypeColors: Record<string, string> = {
-  call: "bg-blue-100 text-blue-800",
-  email: "bg-purple-100 text-purple-800",
-  meeting: "bg-green-100 text-green-800",
-  follow_up: "bg-orange-100 text-orange-800",
-  other: "bg-gray-100 text-gray-800",
+  call: "bg-neutral-100 text-ink",
+  email: "bg-neutral-100 text-ink",
+  meeting: "bg-neutral-100 text-ink",
+  follow_up: "bg-neutral-100 text-ink",
+  other: "bg-neutral-100 text-ink",
 };
 
 const priorityColors: Record<string, string> = {
   high: "text-error",
-  medium: "text-warning",
+  medium: "text-brand",
   low: "text-neutral-400",
 };
 
@@ -135,7 +135,7 @@ export default function TasksPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader className="animate-spin text-primary-600" size={32} />
+        <Loader className="animate-spin text-brand" size={32} />
       </div>
     );
   }
@@ -175,7 +175,7 @@ export default function TasksPage() {
               onClick={() => setStatusFilter(option.value)}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 statusFilter === option.value
-                  ? "bg-primary-600 text-white"
+                  ? "bg-brand text-night"
                   : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
               }`}
             >
@@ -235,7 +235,7 @@ export default function TasksPage() {
             <button
               onClick={() => setShowBulkDelete(true)}
               disabled={bulkBusy}
-              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+              className="px-4 py-2 bg-error text-white rounded-lg hover:opacity-90 font-medium disabled:opacity-50"
             >
               Delete selected
             </button>
@@ -268,10 +268,10 @@ export default function TasksPage() {
                     toggleComplete({ id: task.id, completed: !completed })
                   }
                   title={completed ? "Mark open" : "Mark complete"}
-                  className="mt-1 text-neutral-400 hover:text-primary-600 transition-colors flex-shrink-0"
+                  className="mt-1 text-neutral-400 hover:text-brand transition-colors flex-shrink-0"
                 >
                   {completed ? (
-                    <CheckCircle2 size={24} className="text-success" />
+                    <CheckCircle2 size={24} className="text-ink" />
                   ) : (
                     <Circle size={24} />
                   )}

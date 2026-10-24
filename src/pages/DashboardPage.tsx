@@ -19,31 +19,31 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {metricsLoading ? (
           <div className="col-span-full flex items-center justify-center py-12">
-            <Loader className="animate-spin text-primary-600" size={32} />
+            <Loader className="animate-spin text-brand" size={32} />
           </div>
         ) : (
           <>
             <div className="card p-6">
               <p className="text-sm text-neutral-600 mb-2">Total Contacts</p>
-              <p className="text-3xl font-bold text-primary-600">
+              <p className="text-3xl font-bold text-brand">
                 {summary?.totalContacts?.toLocaleString() || 0}
               </p>
             </div>
             <div className="card p-6">
               <p className="text-sm text-neutral-600 mb-2">Active Deals</p>
-              <p className="text-3xl font-bold text-primary-600">
+              <p className="text-3xl font-bold text-brand">
                 {summary?.activeDeals || 0}
               </p>
             </div>
             <div className="card p-6">
               <p className="text-sm text-neutral-600 mb-2">Pipeline Value</p>
-              <p className="text-3xl font-bold text-primary-600">
+              <p className="text-3xl font-bold text-brand">
                 ${(summary?.totalPipelineValue || 0).toLocaleString()}
               </p>
             </div>
             <div className="card p-6">
               <p className="text-sm text-neutral-600 mb-2">Win Rate</p>
-              <p className="text-3xl font-bold text-success">
+              <p className="text-3xl font-bold text-ink">
                 {summary?.winRate?.toFixed(1)}%
               </p>
             </div>
@@ -56,13 +56,13 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">Top Deals</h3>
-            <Link to="/deals" className="text-primary-600 hover:underline text-sm">
+            <Link to="/deals" className="text-brand hover:underline text-sm">
               View all
             </Link>
           </div>
           {metricsLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader className="animate-spin text-primary-600" size={24} />
+              <Loader className="animate-spin text-brand" size={24} />
             </div>
           ) : topDeals.length > 0 ? (
             <div className="space-y-3">
@@ -97,20 +97,20 @@ export default function DashboardPage() {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-lg">My Tasks</h3>
-            <Link to="/tasks" className="text-primary-600 hover:underline text-sm">
+            <Link to="/tasks" className="text-brand hover:underline text-sm">
               View all
             </Link>
           </div>
           {tasksLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader className="animate-spin text-primary-600" size={24} />
+              <Loader className="animate-spin text-brand" size={24} />
             </div>
           ) : Array.isArray(tasks) && tasks.length > 0 ? (
             <div className="space-y-2">
               {tasks.slice(0, 5).map((task) => (
                 <div
                   key={task.id}
-                  className="p-2 bg-neutral-50 rounded border-l-2 border-primary-600"
+                  className="p-2 bg-neutral-50 rounded border-l-2 border-brand"
                 >
                   <p className="text-sm font-medium line-clamp-2">
                     {task.title}
@@ -130,7 +130,7 @@ export default function DashboardPage() {
               {Array.isArray(tasks) && tasks.length > 5 && (
                 <Link
                   to="/tasks"
-                  className="text-sm text-primary-600 hover:underline block mt-2"
+                  className="text-sm text-brand hover:underline block mt-2"
                 >
                   +{tasks.length - 5} more
                 </Link>

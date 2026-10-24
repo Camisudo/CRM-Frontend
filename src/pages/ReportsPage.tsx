@@ -17,7 +17,7 @@ export default function ReportsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader className="animate-spin text-primary-600" size={32} />
+        <Loader className="animate-spin text-brand" size={32} />
       </div>
     );
   }
@@ -83,7 +83,7 @@ export default function ReportsPage() {
                     </span>
                   </div>
                   <div className="h-2 bg-neutral-200 rounded">
-                    <div className="h-2 bg-primary-600 rounded" style={{ width: `${pct}%` }} />
+                    <div className="h-2 bg-brand rounded" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
@@ -99,7 +99,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-6">
       <p className="text-sm text-neutral-600 mb-2">{label}</p>
-      <p className="text-2xl font-bold text-primary-600">{value}</p>
+      <p className="text-2xl font-bold text-brand">{value}</p>
     </div>
   );
 }

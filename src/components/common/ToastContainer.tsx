@@ -6,17 +6,17 @@ export default function ToastContainer() {
   const { notifications, removeNotification } = useUIStore();
 
   const iconMap = {
-    success: <CheckCircle2 size={20} className="text-success" />,
+    success: <CheckCircle2 size={20} className="text-ink" />,
     error: <AlertCircle size={20} className="text-error" />,
-    warning: <AlertTriangle size={20} className="text-warning" />,
-    info: <Info size={20} className="text-primary-600" />,
+    warning: <AlertTriangle size={20} className="text-brand" />,
+    info: <Info size={20} className="text-brand" />,
   };
 
   const bgMap = {
-    success: "bg-success/10 border-success/30",
+    success: "bg-neutral-100 border-neutral-300",
     error: "bg-error/10 border-error/30",
-    warning: "bg-warning/10 border-warning/30",
-    info: "bg-primary-50 border-primary-200",
+    warning: "bg-brand/10 border-brand/30",
+    info: "bg-neutral-50 border-neutral-300",
   };
 
   return (

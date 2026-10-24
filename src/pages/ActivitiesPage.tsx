@@ -81,7 +81,7 @@ export default function ActivitiesPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader className="animate-spin text-primary-600" size={32} />
+          <Loader className="animate-spin text-brand" size={32} />
         </div>
       ) : error ? (
         <div className="bg-error/10 border border-error text-error px-4 py-3 rounded">

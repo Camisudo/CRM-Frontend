@@ -8,12 +8,12 @@ import DeleteConfirmModal from "../components/common/DeleteConfirmModal";
 import type { Deal } from "../types";
 
 const stages = [
-  { value: DealStage.Prospect, label: "Prospect", color: "bg-blue-100" },
-  { value: DealStage.Qualified, label: "Qualified", color: "bg-cyan-100" },
-  { value: DealStage.Proposal, label: "Proposal", color: "bg-yellow-100" },
-  { value: DealStage.Negotiation, label: "Negotiation", color: "bg-orange-100" },
-  { value: DealStage.ClosedWon, label: "Won", color: "bg-green-100" },
-  { value: DealStage.ClosedLost, label: "Lost", color: "bg-red-100" },
+  { value: DealStage.Prospect, label: "Prospect", color: "bg-neutral-100" },
+  { value: DealStage.Qualified, label: "Qualified", color: "bg-neutral-100" },
+  { value: DealStage.Proposal, label: "Proposal", color: "bg-neutral-100" },
+  { value: DealStage.Negotiation, label: "Negotiation", color: "bg-neutral-100" },
+  { value: DealStage.ClosedWon, label: "Won", color: "bg-neutral-100" },
+  { value: DealStage.ClosedLost, label: "Lost", color: "bg-neutral-100" },
 ];
 
 export default function DealsPage() {
@@ -115,7 +115,7 @@ export default function DealsPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader className="animate-spin text-primary-600" size={32} />
+          <Loader className="animate-spin text-brand" size={32} />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
@@ -152,7 +152,7 @@ export default function DealsPage() {
                         </button>
                         <button
                           onClick={() => handleDeleteClick(deal)}
-                          className="p-1.5 hover:bg-red-200 rounded transition-colors text-error"
+                          className="p-1.5 hover:bg-neutral-200 rounded transition-colors text-error"
                           title="Delete deal"
                         >
                           <Trash2 size={14} />

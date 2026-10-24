@@ -40,7 +40,7 @@ export default function Sidebar() {
         }`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-neutral-800">
+        <div className="p-6 border-b border-ink">
           <h1 className="text-2xl font-bold">CRM</h1>
         </div>
 
@@ -55,8 +55,8 @@ export default function Sidebar() {
                 to={item.path}
                 className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
                   isActive
-                    ? "bg-primary-600 text-white"
-                    : "text-neutral-300 hover:bg-neutral-800"
+                    ? "bg-brand text-night"
+                    : "text-mist hover:bg-ink"
                 }`}
               >
                 <Icon size={20} />
@@ -67,8 +67,8 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-neutral-800">
-          <p className="text-xs text-neutral-400">v1.0.0</p>
+        <div className="p-4 border-t border-ink">
+          <p className="text-xs text-mist/60">v1.0.0</p>
         </div>
       </div>
     </>

@@ -1,12 +1,50 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Source: Obsidian "CRM Frontend - Design" > Design System.
+ *   Palette: #F4F4F4 (mist), #FF7315 (brand), #3A3535 (ink), #232020 (night)
+ *   Typography: YWFT Nexo
+ *
+ * Tailwind v4 reads theme from CSS, not tailwind.config.js. The reset below
+ * removes Tailwind's default colors so only palette values can be used.
+ */
+@theme {
+  --color-*: initial;
+
+  --color-mist: #f4f4f4;
+  --color-brand: #ff7315;
+  --color-ink: #3a3535;
+  --color-night: #232020;
+
+  /* Neutral scale is derived from ink/night/mist, not a separate gray. */
+  --color-neutral-50: #f4f4f4;
+  --color-neutral-100: rgb(58 53 53 / 0.06);
+  --color-neutral-200: rgb(58 53 53 / 0.12);
+  --color-neutral-300: rgb(58 53 53 / 0.2);
+  --color-neutral-400: rgb(58 53 53 / 0.4);
+  --color-neutral-500: rgb(58 53 53 / 0.75);
+  --color-neutral-600: rgb(58 53 53 / 0.85);
+  --color-neutral-700: #3a3535;
+  --color-neutral-800: #3a3535;
+  --color-neutral-900: #232020;
+
+  /* Destructive/error state. Not in the brand palette; kept as the single exception. */
+  --color-error: #ef4444;
+
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --font-sans: "YWFT Nexo", system-ui, sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: rgb(249, 250, 251);
-  color: rgb(17, 24, 39);
+  background-color: var(--color-mist);
+  color: var(--color-night);
+  font-family: var(--font-sans);
 }
 
 h1 {
@@ -25,61 +63,55 @@ h3 {
 }
 
 button {
-  transition-property: background-color, border-color, color, fill, stroke;
+  transition-property: background-color, border-color, color, fill, stroke, opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
 
+/* Brand button: night text on brand orange (white on #FF7315 fails WCAG AA). */
 .btn-primary {
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  background-color: rgb(2, 132, 199);
-  color: white;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-brand);
+  color: var(--color-night);
   border-radius: 0.5rem;
   font-weight: 500;
 }
 
 .btn-primary:hover {
-  background-color: rgb(3, 105, 161);
+  opacity: 0.9;
 }
 
 .btn-secondary {
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  background-color: rgb(229, 231, 235);
-  color: rgb(17, 24, 39);
+  padding: 0.5rem 1rem;
+  background-color: var(--color-white);
+  color: var(--color-night);
+  border: 1px solid var(--color-neutral-300);
   border-radius: 0.5rem;
   font-weight: 500;
 }
 
 .btn-secondary:hover {
-  background-color: rgb(209, 213, 219);
+  background-color: var(--color-neutral-100);
 }
 
 .input-base {
   width: 100%;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  border: 1px solid rgb(209, 213, 219);
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-white);
+  color: var(--color-night);
+  border: 1px solid var(--color-neutral-300);
   border-radius: 0.5rem;
 }
 
 .input-base:focus {
   outline: none;
-  ring-width: 2px;
-  ring-offset-width: 0;
-  --tw-ring-color: rgb(14, 165, 233);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 2px var(--color-brand);
 }
 
 .card {
-  background-color: white;
+  background-color: var(--color-white);
   border-radius: 0.5rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid rgb(229, 231, 235);
+  box-shadow: 0 1px 2px 0 rgb(35 32 32 / 0.06);
+  border: 1px solid var(--color-neutral-200);
 }

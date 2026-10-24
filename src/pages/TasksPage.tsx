@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTasks } from "../hooks/useTasks";
+import { useUIStore } from "../store/uiStore";
 import { TaskStatus } from "../types";
 import { Plus, Loader, CheckCircle2, Circle } from "lucide-react";
+import TaskFormModal from "../components/features/TaskFormModal";
 import type { Task } from "../types";
 
 const taskTypeColors: Record<string, string> = {
@@ -20,6 +22,8 @@ export default function TasksPage() {
     sortBy: "dueDate",
     sortOrder: "asc",
   });
+
+  const { openModal } = useUIStore();
 
   const tasks = data?.data || [];
 
@@ -63,7 +67,10 @@ export default function TasksPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Tasks</h1>
-        <button className="btn-primary flex items-center space-x-2">
+        <button
+          onClick={() => openModal("task-form")}
+          className="btn-primary flex items-center space-x-2"
+        >
           <Plus size={20} />
           <span>New Task</span>
         </button>
@@ -160,6 +167,9 @@ export default function TasksPage() {
           </div>
         )}
       </div>
+
+      {/* Task Form Modal */}
+      <TaskFormModal />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import Header from "../common/Header";
+import ToastContainer from "../common/ToastContainer";
 import DashboardPage from "../../pages/DashboardPage";
 import ContactsPage from "../../pages/ContactsPage";
 import DealsPage from "../../pages/DealsPage";
@@ -28,6 +29,9 @@ export default function DashboardLayout() {
           </Routes>
         </main>
       </div>
+
+      {/* Toast notifications */}
+      <ToastContainer />
     </div>
   );
 }

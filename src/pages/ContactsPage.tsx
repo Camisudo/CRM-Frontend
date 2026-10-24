@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useContacts } from "../hooks/useContacts";
+import { useUIStore } from "../store/uiStore";
 import { Link } from "react-router-dom";
 import { Plus, Search, Loader } from "lucide-react";
+import ContactFormModal from "../components/features/ContactFormModal";
 import type { Contact } from "../types";
 
 export default function ContactList() {
@@ -14,6 +16,12 @@ export default function ContactList() {
     limit: 20,
   });
 
+  const { openModal } = useUIStore();
+
+  const handleOpenModal = () => {
+    openModal("contact-form");
+  };
+
   const contacts = data?.data || [];
   const pagination = data?.pagination;
 
@@ -21,7 +29,7 @@ export default function ContactList() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Contacts</h1>
-        <button className="btn-primary flex items-center space-x-2">
+        <button onClick={handleOpenModal} className="btn-primary flex items-center space-x-2">
           <Plus size={20} />
           <span>New Contact</span>
         </button>
@@ -137,11 +145,14 @@ export default function ContactList() {
       {!isLoading && contacts.length === 0 && (
         <div className="card p-12 text-center">
           <p className="text-neutral-500 mb-4">No contacts found</p>
-          <button className="btn-primary">
+          <button onClick={handleOpenModal} className="btn-primary">
             Create your first contact
           </button>
         </div>
       )}
+
+      {/* Contact Form Modal */}
+      <ContactFormModal />
     </div>
   );
 }

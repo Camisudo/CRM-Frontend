@@ -1,6 +1,8 @@
 import { useDeals } from "../hooks/useDeals";
+import { useUIStore } from "../store/uiStore";
 import { DealStage } from "../types";
 import { Plus, Loader } from "lucide-react";
+import DealFormModal from "../components/features/DealFormModal";
 import type { Deal } from "../types";
 
 const stages = [
@@ -14,6 +16,7 @@ const stages = [
 
 export default function DealsPage() {
   const { data, isLoading, error } = useDeals();
+  const { openModal } = useUIStore();
 
   const deals = data?.data || [];
 
@@ -54,7 +57,10 @@ export default function DealsPage() {
             Total Value: ${totalPipelineValue.toLocaleString()} • {deals.length} deals
           </p>
         </div>
-        <button className="btn-primary flex items-center space-x-2">
+        <button
+          onClick={() => openModal("deal-form")}
+          className="btn-primary flex items-center space-x-2"
+        >
           <Plus size={20} />
           <span>New Deal</span>
         </button>
@@ -112,6 +118,9 @@ export default function DealsPage() {
           })}
         </div>
       </div>
+
+      {/* Deal Form Modal */}
+      <DealFormModal />
     </div>
   );
 }

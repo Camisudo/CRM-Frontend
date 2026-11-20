@@ -1,201 +1,92 @@
 # CRM Frontend
 
-Customer Relationship Management (CRM) system frontend application built with modern web technologies.
+React single-page app for the Teller CRM backend. It covers contacts, deals (pipeline), tasks, activity log, and reports.
 
 ## Tech Stack
 
-- **React 18** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool (fast development and optimized builds)
-- **TanStack Query (React Query)** - Server state management, caching, synchronization
-- **Zustand** - Client state management (auth, UI state)
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Icon library
-- **Axios** - HTTP client
-- **React Router** - Client-side routing
-- **Vitest** - Unit testing framework
-- **React Testing Library** - Component testing
-- **ESLint + Prettier** - Code quality
+- React 19 and TypeScript
+- Vite 8 (dev server and production build)
+- TanStack Query for server state (caching, mutations)
+- Zustand for client state (auth, UI, notifications)
+- React Router for routing
+- Tailwind CSS v4 (design tokens in `src/index.css` under `@theme`)
+- Axios for HTTP
+- Lucide React for icons
+- oxlint for linting
 
 ## Project Structure
 
 ```
 src/
-├── components/        # Reusable UI components
-│   ├── common/       # Shared components (Header, Sidebar, etc.)
-│   ├── features/     # Feature-specific components
-│   └── layouts/      # Layout components
-├── pages/            # Page-level components
-├── store/            # Zustand stores
-│   ├── authStore.ts  # Authentication state
-│   └── uiStore.ts    # UI state (modals, notifications, etc.)
-├── services/         # API clients and services
-│   └── api.ts        # Axios instance + API methods
-├── hooks/            # Custom React hooks
-├── types/            # TypeScript type definitions
-├── utils/            # Utility functions
-└── styles/           # Global styles
+├── components/
+│   ├── common/       # Shared UI: Modal, Sidebar, Header, form fields, toasts
+│   ├── features/     # Create/edit forms for contacts, deals, tasks
+│   └── layouts/      # DashboardLayout (shell + lazy-loaded routes)
+├── pages/            # Route-level pages (login, dashboard, contacts, deals, tasks, activity, reports)
+├── hooks/            # TanStack Query hooks per resource
+├── services/
+│   └── api.ts        # Axios client and endpoint methods
+├── store/
+│   ├── authStore.ts  # Login state, token in localStorage
+│   └── uiStore.ts    # Sidebar, modal, toast notifications
+└── types/index.ts    # Entity and API types
 ```
 
-## Installation
+## Setup
 
 ```bash
 npm install
+cp .env.example .env   # optional; see Environment below
 ```
 
-## Development
+## Scripts
 
 ```bash
-npm run dev
+npm run dev       # Vite dev server (http://localhost:5173)
+npm run build     # Type-check (tsc -b) and production build into dist/
+npm run preview   # Serve the production build locally
+npm run lint      # oxlint
 ```
 
-Starts Vite dev server at `http://localhost:5173` with hot module replacement.
+## Environment
 
-## Build
+| Variable            | Default                      | Purpose                    |
+|---------------------|------------------------------|----------------------------|
+| `VITE_API_BASE_URL` | `http://localhost:3000/v1`   | Base URL of the API        |
 
-```bash
-npm run build
-```
+The Teller backend serves the UI and the API from one origin. Its build script sets `VITE_API_BASE_URL=/v1` so the bundle calls the same host.
 
-Creates optimized production build in `dist/` folder.
+## Running Against Teller
 
-## Testing
+Start the backend on port 3000 (its default), then run `npm run dev`. On first run, Teller creates an admin account and writes the generated password to `teller-admin-password.txt` next to the executable. Sign in with that password, then delete the file.
 
-```bash
-npm run test
-```
+To build the UI into the Teller binary, run `./build.sh` in the Teller repo.
 
-Runs Vitest in watch mode.
+## Authentication
 
-```bash
-npm run test:ui
-```
+- `POST /auth/login` stores the returned token and user in localStorage.
+- Every request sends `Authorization: Bearer <token>`.
+- A 401 response clears the token and redirects to `/login`.
 
-Opens Vitest UI at `http://localhost:51204`.
+## Query and Mutation Behavior
 
-## Linting
+- Queries are cached for 5 minutes (`staleTime`) and garbage-collected after 10.
+- Mutations raise toasts through a global `MutationCache`. A mutation can set `meta.successMessage` or `meta.errorMessage` to customize the text.
+- List filters are sent as comma-separated values (for example `?status=open,in_progress`). Empty values are dropped.
 
-```bash
-npm run lint
-```
+## Accessibility
 
-Runs ESLint to check code quality.
+- Modals use `role="dialog"`, `aria-modal`, and a labelled title. Escape closes them.
+- Icon-only buttons have accessible names.
+- The main navigation is a labelled `<nav>` and marks the current page with `aria-current`.
+- Page routes are code-split with `React.lazy`.
 
-```bash
-npm run format
-```
+## Known Gaps
 
-Runs Prettier to format code.
-
-## Environment Variables
-
-Create a `.env` file based on `.env.example`:
-
-```
-VITE_API_BASE_URL=http://localhost:3000/v1
-```
-
-## Data Types
-
-All TypeScript types are defined in `src/types/index.ts`:
-
-- **User** - User profile and permissions
-- **Contact** - Individual or company contact
-- **Deal** - Sales opportunity
-- **Task** - Actionable item
-- **Activity** - Historical event log
-- **Note** - Attached message
-
-See `src/types/index.ts` for full definitions.
-
-## API Integration
-
-The API client is in `src/services/api.ts`. It uses:
-
-- **TanStack Query** for server state management and caching
-- **Axios** for HTTP requests
-- **Zustand** for client state (auth token, filters, UI state)
-
-Example usage:
-
-```typescript
-import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "../services/api";
-
-export function useContacts() {
-  return useQuery({
-    queryKey: ["contacts"],
-    queryFn: () => apiClient.getContacts(),
-  });
-}
-```
-
-## State Management
-
-### Zustand Stores
-
-**AuthStore** (`src/store/authStore.ts`):
-- `user` - Current user
-- `token` - JWT token
-- `isAuthenticated` - Auth status
-- `login()` - Login with credentials
-- `logout()` - Logout
-- `refreshToken()` - Refresh JWT
-
-**UIStore** (`src/store/uiStore.ts`):
-- `sidebarOpen` - Sidebar visibility
-- `modal` - Modal state (type, data)
-- `notifications` - Toast notifications
-- Various actions to update state
-
-## Component Architecture
-
-### Layout
-- **DashboardLayout** - Main app shell with sidebar, header, content area
-- **Sidebar** - Navigation menu with logo
-- **Header** - Top bar with user menu, notifications
-
-### Pages
-- **LoginPage** - Authentication
-- **DashboardPage** - Main dashboard with metrics
-
-## Next Steps
-
-1. **Complete feature pages**
-   - Contacts list/detail
-   - Deals pipeline view
-   - Tasks management
-   - Reporting
-
-2. **Implement API integration**
-   - Connect to backend API
-   - Add TanStack Query hooks
-   - Handle errors and loading states
-
-3. **Add advanced features**
-   - Search and filtering
-   - Pagination
-   - Bulk operations
-   - Real-time updates (WebSocket)
-
-4. **Testing**
-   - Unit tests for utilities
-   - Component tests for UI
-   - Integration tests for workflows
-
-5. **Accessibility & Performance**
-   - WCAG 2.1 AA compliance
-   - Lighthouse 90+ score
-   - Code splitting and lazy loading
-
-## Documentation
-
-See Obsidian vault for:
-- **CRM Frontend - Architecture** - Technical architecture
-- **CRM Frontend - Requirements** - Feature requirements
-- **CRM Frontend - Data Models** - Type definitions
-- **CRM Frontend - API Endpoints** - API specification
-- **CRM Frontend - Design** - UI/UX design system
+- No automated tests. Vitest and Testing Library are listed in `package.json` but not configured.
+- No Prettier config or format script.
+- Contacts, deals, and tasks have no detail pages yet; only list views and modals exist.
+- No CI pipeline.
 
 ## License
 

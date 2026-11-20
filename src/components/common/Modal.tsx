@@ -1,3 +1,4 @@
+import { useEffect, useId } from "react";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -15,6 +16,17 @@ export default function Modal({
   children,
   size = "md",
 }: ModalProps) {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const sizeClasses = {
@@ -25,12 +37,19 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full`}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={`bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
-          <h2 className="text-xl font-semibold">{title}</h2>
+          <h2 id={titleId} className="text-xl font-semibold">{title}</h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <X size={20} />

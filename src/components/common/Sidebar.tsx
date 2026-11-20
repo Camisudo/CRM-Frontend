@@ -28,6 +28,7 @@ export default function Sidebar() {
       {/* Mobile toggle button */}
       <button
         onClick={toggleSidebar}
+        aria-label="Toggle navigation"
         className="lg:hidden fixed top-4 left-4 z-50 p-2 hover:bg-neutral-200 rounded"
       >
         <Menu size={24} />
@@ -45,7 +46,7 @@ export default function Sidebar() {
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav aria-label="Main" className="flex-1 p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -53,6 +54,7 @@ export default function Sidebar() {
               <Link
                 key={item.path}
                 to={item.path}
+                aria-current={isActive ? "page" : undefined}
                 className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors ${
                   isActive
                     ? "bg-brand text-night"

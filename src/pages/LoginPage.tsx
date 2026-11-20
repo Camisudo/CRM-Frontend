@@ -66,10 +66,6 @@ export default function LoginPage() {
             {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
-
-        <p className="text-center text-sm text-neutral-600 mt-6">
-          Demo credentials: any email / any password (backend integration pending)
-        </p>
       </div>
     </div>
   );

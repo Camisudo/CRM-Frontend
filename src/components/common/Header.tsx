@@ -19,7 +19,7 @@ export default function Header() {
 
       <div className="flex items-center space-x-4">
         {/* Notifications */}
-        <button className="p-2 hover:bg-neutral-100 rounded-lg relative">
+        <button type="button" aria-label="Notifications" className="p-2 hover:bg-neutral-100 rounded-lg relative">
           <Bell size={20} />
           <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
         </button>
@@ -32,11 +32,12 @@ export default function Header() {
             </p>
             <p className="text-xs text-neutral-500">{user?.role}</p>
           </div>
-          <button className="p-2 hover:bg-neutral-100 rounded-lg">
+          <button type="button" aria-label="Account" className="p-2 hover:bg-neutral-100 rounded-lg">
             <User size={20} />
           </button>
           <button
             onClick={handleLogout}
+            aria-label="Log out"
             className="p-2 hover:bg-neutral-100 rounded-lg text-error"
           >
             <LogOut size={20} />

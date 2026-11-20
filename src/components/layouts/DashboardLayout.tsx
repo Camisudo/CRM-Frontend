@@ -1,13 +1,14 @@
+import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "../common/Sidebar";
 import Header from "../common/Header";
 import ToastContainer from "../common/ToastContainer";
-import DashboardPage from "../../pages/DashboardPage";
-import ContactsPage from "../../pages/ContactsPage";
-import DealsPage from "../../pages/DealsPage";
-import TasksPage from "../../pages/TasksPage";
-import ActivitiesPage from "../../pages/ActivitiesPage";
-import ReportsPage from "../../pages/ReportsPage";
+const DashboardPage = lazy(() => import("../../pages/DashboardPage"));
+const ContactsPage = lazy(() => import("../../pages/ContactsPage"));
+const DealsPage = lazy(() => import("../../pages/DealsPage"));
+const TasksPage = lazy(() => import("../../pages/TasksPage"));
+const ActivitiesPage = lazy(() => import("../../pages/ActivitiesPage"));
+const ReportsPage = lazy(() => import("../../pages/ReportsPage"));
 
 export default function DashboardLayout() {
   return (
@@ -22,6 +23,7 @@ export default function DashboardLayout() {
 
         {/* Page content */}
         <main className="flex-1 overflow-auto">
+          <Suspense fallback={<p className="p-6 text-sm text-neutral-500">Loading…</p>}>
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/contacts" element={<ContactsPage />} />
@@ -31,6 +33,7 @@ export default function DashboardLayout() {
             <Route path="/reports" element={<ReportsPage />} />
             {/* Additional routes for detail pages will go here */}
           </Routes>
+          </Suspense>
         </main>
       </div>
 
